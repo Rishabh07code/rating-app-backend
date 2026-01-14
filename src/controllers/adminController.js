@@ -151,17 +151,16 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-// @desc    Get all users (with filters)
+// @desc    Get all normal users only (role='USER')
 // @route   GET /api/admin/users
 // @access  Private/Admin
 const getUsers = async (req, res) => {
-    const { name, email, address, role, sortBy, order } = req.query;
-    const where = {};
+    const { name, email, address, sortBy, order } = req.query;
+    const where = { role: 'USER' }; // Only normal users
 
     if (name) where.name = { [Op.like]: `%${name}%` };
     if (email) where.email = { [Op.like]: `%${email}%` };
     if (address) where.address = { [Op.like]: `%${address}%` };
-    if (role && role !== 'All Roles') where.role = role;
 
     const orderClause = [];
     if (sortBy) {
@@ -172,14 +171,94 @@ const getUsers = async (req, res) => {
         const users = await User.findAll({
             where,
             order: orderClause,
+            attributes: { exclude: ['password'] }
+        });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get all store owners (role='STORE_OWNER')
+// @route   GET /api/admin/store-owners
+// @access  Private/Admin
+const getStoreOwners = async (req, res) => {
+    const { name, email, address, sortBy, order } = req.query;
+    const where = { role: 'STORE_OWNER' };
+
+    if (name) where.name = { [Op.like]: `%${name}%` };
+    if (email) where.email = { [Op.like]: `%${email}%` };
+    if (address) where.address = { [Op.like]: `%${address}%` };
+
+    const orderClause = [];
+    if (sortBy) {
+        orderClause.push([sortBy, order === 'desc' ? 'DESC' : 'ASC']);
+    }
+
+    try {
+        const storeOwners = await User.findAll({
+            where,
+            order: orderClause,
             attributes: { exclude: ['password'] },
             include: [{
                 model: Store,
-                attributes: ['name', 'rating'],
-                required: false // LEFT JOIN, so normal users (without store) are still returned
+                attributes: ['id', 'name', 'address', 'rating'],
+                required: false
             }]
         });
-        res.json(users);
+        res.json(storeOwners);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get all admins (role='ADMIN')
+// @route   GET /api/admin/admins
+// @access  Private/Admin
+const getAdmins = async (req, res) => {
+    const { name, email, address, sortBy, order } = req.query;
+    const where = { role: 'ADMIN' };
+
+    if (name) where.name = { [Op.like]: `%${name}%` };
+    if (email) where.email = { [Op.like]: `%${email}%` };
+    if (address) where.address = { [Op.like]: `%${address}%` };
+
+    const orderClause = [];
+    if (sortBy) {
+        orderClause.push([sortBy, order === 'desc' ? 'DESC' : 'ASC']);
+    }
+
+    try {
+        const admins = await User.findAll({
+            where,
+            order: orderClause,
+            attributes: { exclude: ['password'] }
+        });
+        res.json(admins);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get available store owners (without stores)
+// @route   GET /api/admin/available-owners
+// @access  Private/Admin
+const getAvailableOwners = async (req, res) => {
+    try {
+        const storeOwners = await User.findAll({
+            where: { role: 'STORE_OWNER' },
+            attributes: ['id', 'name', 'email'],
+            include: [{
+                model: Store,
+                attributes: ['id'],
+                required: false
+            }]
+        });
+
+        // Filter owners without stores
+        const availableOwners = storeOwners.filter(owner => !owner.Store);
+        
+        res.json(availableOwners);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -222,5 +301,8 @@ export {
     addUser,
     getDashboardStats,
     getUsers,
+    getStoreOwners,
+    getAdmins,
+    getAvailableOwners,
     getStores,
 };
