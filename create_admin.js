@@ -9,8 +9,8 @@ const createAdmin = async () => {
 
         const email = 'admin@storerating.com';
         const password = 'AdminPassword@123';
-        const name = 'System Adstrator';
-        const address = 'Admin HQ';
+        const name = 'System Administrator Main';
+        const address = 'Admin Headquarters Building';
 
         const userExists = await User.findOne({ where: { email } });
 
