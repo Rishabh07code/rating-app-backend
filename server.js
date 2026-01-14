@@ -39,7 +39,9 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("✅ DB connected");
 
-    await sequelize.sync({ force: true });
+    // Changed to false to prevent data loss on restart
+    await sequelize.sync({ force: false });
+    console.log("✅ Models synced");
 
     const PORT = 3000;
     app.listen(PORT, () => {
