@@ -4,6 +4,9 @@ import {
     addUser,
     getDashboardStats,
     getUsers,
+    getStoreOwners,
+    getAdmins,
+    getAvailableOwners,
     getStores,
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
@@ -18,5 +21,8 @@ router.post('/stores', addStore);
 router.get('/stores', getStores);
 router.post('/users', addUser);
 router.get('/users', getUsers);
+router.get('/store-owners', getStoreOwners);
+router.get('/admins', getAdmins);
+router.get('/available-owners', getAvailableOwners);
 
 export default router;
